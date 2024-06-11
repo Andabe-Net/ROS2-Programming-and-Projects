@@ -1,6 +1,6 @@
 ROS Programming
 
-Installation: ROS humble installed on WSL2 Ubuntu version 22.04.4
+Installation: ROS humble installed on WSL2 Ubuntu version 22.04.4, and VcXsrv Server for GUI
 
 BUGS:
 
