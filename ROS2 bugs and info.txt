@@ -1,0 +1,94 @@
+ROS Programming
+
+Installation: ROS humble installed on WSL2 Ubuntu version 22.04.4
+
+BUGS:
+
+Bug1 during installation:
+	Could not be able to "add the ROS2 GPG key with apt" with the following command because connection to the github repo always
+	timeout. ALso could not open in my browser.
+  command:
+	>>> sudo apt update && sudo apt install curl -y
+	>>> sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+  solution>>: 
+	used google Colab and python "requests" module to download the key from "https://raw.githubusercontent.com/ros/rosdistro/master/ros.key" 
+	and saved the the key to a newly created file same name as "ros-archive-keyring.gpg",
+	downloaded the file and moved to /usr/share/keyrings/ directory on my ubuntu,
+	so that file is now /usr/share/keyrings/ros-archive-keyring.gpg containing the key.
+	
+	alternative:
+		Since I could access the raw github file with colab and not with my browser,
+		most likely a network issue, and using a VPN worked well, as I was able to view
+		the key in github.
+
+Bug2: 
+	-always source /opt/ros/humble/setup.bash to load ros2 commands else get command not found error,
+	-maybe a good idea to add the source command to the start up file with
+	 >>> echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc	
+info:	
+	ROS2 works on the principle of inter-component communication
+
+Bug3 with running turlesim: 
+
+	GUI and opening mutilple GUI windows:
+	 - unfortunaletly, WSL2 Ubuntu has no GUI. Needed to install VcXsrv,
+	- setting environment variable to the ID of the VcXsrv instance with DISPLAY=:0.0,
+	- I can open multiple VcXsrv windows each of different ID, then set environment variables
+	  DISPLAY to corresponding ID of the monitor in each terminal instance.
+	
+	Remote and local Connection:
+		- Could not control turtle using commands.
+		- found out ROS2 communication is not limited to localhost.
+		solutions>>
+			- Putting off VPN I was able to solve this.
+			- ROS_LOCALHOST_ONLY environment variable allows you to limit ROS 2 communication to localhost only
+			- do this with: 
+				>>>echo "export ROS_LOCALHOST_ONLY=1" >> ~/.bashrc
+
+	Remapping: allows you to reassign default node properties e.g node name, topic name, etc to custom values. 
+		-needed a second teloeop to control turtle2
+		-do with remapping the cmd_vel topic to target turtle2 with
+		  >>> ros2 run turtlesim turtle_teleop_key --ros-args --remap turtle1/cmd_vel:=turtle2/cmd_vel
+Bug4:
+	Running rqt in its own window
+	-open a new vcXsrv instance, it will have its own window ID e.g :1.0
+	-set and export DISPLAY variable to the ID on the terminal to run rqt e.g >>> export DISPLAY=:1.0
+	
+info:Running an executable froma package:
+	>>> ros2 run <package_name> <executable_name>
+	>>>ros2 run turtlesim turtlesim_node
+info: a single executable(C++ or python program) can contain one or more nodes
+	list nodes
+	>>> ros2 node list
+	info about nodes
+	>>> ros2 node info <node_name>
+	   >>> ros2 node info /my_turtle
+
+	topics:
+	list topics
+	>> ros2 topic list
+	>> ros2 topic list -t
+
+	view data published over a topic
+	>> ros2 topic echo <topic_name>
+	>> ros2 topic echo /turtle1/cmd_vel
+	
+	vie topic info:
+	>> ros2 topic info /turtle1/cmd_vel
+rqt_gragh: inspection tool to view and inspect ROS gragh
+	>>> rqt_graph
+info on ros2 interface show: 
+	Nodes send data over topics using messages. Publishers and subcribers must send and receive 
+	meassages of the same type to communicate
+	to view details about a particular message type
+	>> ros2 interface show <message_type>
+	cmcd_level of type geometry_msgs/msg/Twist(meaning module geometry_msgs has a msg called Twist)
+	>> ros2 interface show geometry_msgs/msg/Twist
+
+info on ros2 topic pub:
+
+	to publish message to a topic directly, must be in YAML format
+	>> ros2 topic pub <topic_name> <message_type> '<args>'
+	>> ros2 topic pub --once /turtle2/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 2.0,y: 0.0,z: 0.0}, angular: {x: 1.0, y: 2.0, z: 0.0}}"
+	or to deliver message at steady stream of 1Hz
+	>> ros2 topic pub --rate 1 /turtle1/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 2.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 1.8}}"		
