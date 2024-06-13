@@ -1,6 +1,6 @@
 ROS Programming
 
-Installation: ROS humble installed on WSL2 Ubuntu version 22.04.4, and VcXsrv Server for GUI
+Installation: ROS humble installed on WSL2 Ubuntu version 22.04.4
 
 BUGS:
 
@@ -28,7 +28,7 @@ Bug2:
 info:	
 	ROS2 works on the principle of inter-component communication
 
-Bug3 with running turlesim: 
+Bug3 with running turtlesim: 
 
 	GUI and opening mutilple GUI windows:
 	 - unfortunaletly, WSL2 Ubuntu has no GUI. Needed to install VcXsrv,
@@ -64,7 +64,7 @@ info: a single executable(C++ or python program) can contain one or more nodes
 	>>> ros2 node info <node_name>
 	   >>> ros2 node info /my_turtle
 
-	topics:
+topics:
 	list topics
 	>> ros2 topic list
 	>> ros2 topic list -t
@@ -88,7 +88,95 @@ info on ros2 interface show:
 info on ros2 topic pub:
 
 	to publish message to a topic directly, must be in YAML format
+	check topic type
+	>> ros2 topic type <topic_name>
 	>> ros2 topic pub <topic_name> <message_type> '<args>'
 	>> ros2 topic pub --once /turtle2/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 2.0,y: 0.0,z: 0.0}, angular: {x: 1.0, y: 2.0, z: 0.0}}"
 	or to deliver message at steady stream of 1Hz
-	>> ros2 topic pub --rate 1 /turtle1/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 2.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 1.8}}"		
+	>> ros2 topic pub --rate 1 /turtle1/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 2.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 1.8}}"
+	check at what rate data is passing through a topic
+	>> ros2 topic hz <topic_name>	
+
+info on ros2 services (for request-response communication): not suiable for continous calls(see topics or actions):
+	list services with type
+	>> ros2 service list type
+	find out the type of a particular service
+	>> ros2 service type <service_name>
+	find all services of a particular type
+	>> ros2 service find <type_name>
+	
+	to call a service, must know the structure of the input arguments
+	>> ros2 interface show <type_name>
+	call service
+	>> ros2 service call <service_name> <service_type> <arguments>	
+		"<arguments> is optional since some service call do not require them"
+
+info on parameters: each node has parameters(node configuratio or settings)
+	>> ros2 param list
+	get parameter type and value
+	>> ros2 param  get <node_name> <parameter_name>
+	>> ros2 param get /turtlesim background_b
+	change parameter value at runtime
+	>> ros2 param set <node_name> <parameter_name> <value>
+	>>ros2 param set /turtlesim background_b 255
+
+	view all of a node's parameter values 
+	>> ros2 param dump <node_name>
+	 may save them to a file
+	>> ros2 param dump <node_name> > <file_name>
+	>> ros2 param dump /turtlesim > turtlesim.yaml
+
+	load param to a node, read_only parameters can only be modified at node startup and not afterwards
+	>> ros2 param load <node_name> <parameter_file>
+	>>ros2 param load /turtlesim turtlesim.yaml
+
+	load start node with saved parameter values, read-only parameters will also be modified at node startup
+	>> ros2 run <package_name> <executable_name> --ros-args --params-file <parameter-file>
+	>> ros2 run turtlesim turtlesim_node --ros-args --params-file turtlesim.yaml
+
+
+info on actions: 
+	all actions in the ROS graph
+	>> ros2 action list
+	>> ros2 action list -t
+
+	check for action servers and action clients in a node
+	>>ros2 node info <node_name>
+
+	intospect an action, to  see the server and client details
+	>>ros2 action info <action_name>
+
+	view type structure of the type of action goal to send the action server, displaying the form of rewuest, result and feedback
+	>> ros2 interface show <action_type>
+	>> ros2 interface show turtlesim/action/RotateAbsolute
+
+	send an action goal
+	>> ros2 action send_goal <action_namme> <action_type> <values>
+	with feedback
+	>> ros2 action send_goal <action_namme> <action_type> <values> --feedback
+
+logging:
+	using rqt_console to view logs, save logs and load saved logs
+	>> ros2 run rqt_console rqt_console
+	
+	set default log level when starting a node
+	>> ros2 run turtlesim turtlesim_node --ros-args --log-level WARN
+
+launch: launching multiple nodes:
+	>> ros2 launch turtlesim multisim.launch.py
+	publish control data to the two nodes over a topic
+	>> ros2 topic pub  /turtlesim1/turtle1/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 2.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 1.8}}"
+	>> ros2 topic pub  /turtlesim2/turtle1/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 2.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: -1.8}}"
+ros2 bag: (can also access via rqt)
+	to record data passed on topics
+	>> ros2 bag record <topic_name>
+	record muliple topics to a file named eventd
+	>> ros2 bag record -o events <topic_name1> <topic_name2>
+
+	record all topics
+	>>ros2 bag record -o events -a
+	
+	play a record
+	>> ros2 bag play <bag_name>
+	bag info
+	>> ros2 bag info <bag_name>	
