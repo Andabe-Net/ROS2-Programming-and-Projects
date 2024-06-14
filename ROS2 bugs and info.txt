@@ -176,7 +176,53 @@ ros2 bag: (can also access via rqt)
 	record all topics
 	>>ros2 bag record -o events -a
 	
-	play a record
-	>> ros2 bag play <bag_name>
+	play a record at 1hz rate
+	>> ros2 bag play --rate 1 <bag_name>
 	bag info
 	>> ros2 bag info <bag_name>	
+
+CLIENT LIBRARIES: 
+	colcon: a build tool
+	install:>> sudo apt install python3-colcon-common-extensions
+
+	-- it is important to source an existing ROS 2 installation, or an underlay, to provide the necessary dependencies
+	-- any other workspace will be an overlay on top of the underlay
+
+	build ("--symlink-install allows the installed files to be changed by changing the files in the source for faster iteration")
+	>> colcon build --symlink-install
+
+	sourrce the environment from the workspace
+	>> source install/setup.bash
+
+	Workspaces: a workspace is a directory containing ros2 packages
+	packages in the overlay override packages in the underlay when working from the overlay(secondary) workspace
+
+	resolve dependencies from workspace
+	>> rosdep install -i --from-path src --rosdistro humble -y
+	>> colcon build
+	build options
+	--packages-up-to (builds the package you want, plus all its dependencies, but not the whole workspace (saves time))
+	--symlink-install (don't rebuild every time you tweak python scripts with this option)
+	--event-handlers console_direct+ (shows console output while building (can otherwise be found in the log directory))
+	--executor sequential (processes the packages one by one instead of using parallelism)
+
+	build a single package from src
+	-- colcon build --packages-select <package_name>
+
+	sourcing
+		sourcing an overlay in the same terminal where you built
+		or building where an overlay is sourced may cause complex issues
+		--- use separate terminals for building and for sourcing  
+		
+		sourcing the local_setup adds only the packages in the overlay to the environment
+		sourcing setup adds the packages in the overlay and the underlay to the linux environment
+		so that sourcing setup is the same as souricng ROS 2 installation's setup followed by sourcing local_setup
+	
+	Creating a Package:
+		>> ros2 pkg create 
+		>> ros2 pkg create --build-type --license --node-name package_name
+	Building a package: to build a specific package use '--packages-select <package_name>' option or place COLCON_IGNORE files in other packages in the workspace that you don't want to build 
+		>> colcon build	--packages-select <package_name>
+
+	
+	
